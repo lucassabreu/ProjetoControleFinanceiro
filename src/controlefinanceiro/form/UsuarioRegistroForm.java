@@ -2,19 +2,31 @@ package controlefinanceiro.form;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import controlefinanceiro.control.UsuarioControl;
+import controlefinanceiro.dao.entidade.Usuario;
+import controlefinanceiro.exception.CampoInvalidoRNException;
+
 import ui.util.layouts.ParagraphLayout;
 
-public class UsuarioRegistroForm extends JDialog {
+public class UsuarioRegistroForm extends JDialog implements ActionListener {
     private static final long serialVersionUID = -4286045236590371512L;
+
+    // control
+    protected Usuario         model;
+    protected UsuarioControl  control;
 
     // panels
     protected JPanel          pnData;
@@ -36,9 +48,12 @@ public class UsuarioRegistroForm extends JDialog {
     public UsuarioRegistroForm() {
         this.setTitle("Registra-se");
         this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        this.setSize(300, 160);
+        this.setSize(300, 170);
         this.setModal(true);
         this.setResizable(false);
+        this.setLocationRelativeTo(null);
+
+        this.control = UsuarioControl.getInstance();
 
         this.doData();
         this.doActions();
@@ -67,7 +82,7 @@ public class UsuarioRegistroForm extends JDialog {
         this.pnData.add(this.lbSenha, ParagraphLayout.NEW_PARAGRAPH);
         this.pnData.add(this.txSenha);
 
-        this.add(this.pnData);
+        getContentPane().add(this.pnData);
     }
 
     protected void doActions() {
@@ -84,6 +99,41 @@ public class UsuarioRegistroForm extends JDialog {
         this.btCancelar.setBackground(this.pnActions.getBackground());
         this.pnActions.add(this.btCancelar);
 
-        this.add(this.pnActions, BorderLayout.SOUTH);
+        this.btRegistrar.addActionListener(this);
+        this.btCancelar.addActionListener(this);
+        
+        getContentPane().add(this.pnActions, BorderLayout.SOUTH);
+    }
+
+    public Usuario getModel() {
+        return this.model;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        if (e.getSource() instanceof Component) {
+            Component c = (Component) e.getSource();
+
+            if (c.getName().equals("registrar")) {
+                Usuario model = new Usuario();
+
+                model.setLogin(this.txLogin.getText());
+                model.setNome(this.txNome.getText());
+                model.setSenha(new String(this.txSenha.getPassword()));
+
+                try {
+                    this.control.registrar(model);
+                    this.model = model;
+                    this.dispose();
+                } catch (CampoInvalidoRNException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Registrar", JOptionPane.ERROR_MESSAGE);
+                    //ex.printStackTrace();
+                }
+
+            } else if (c.getName().equals("cancelar")) {
+                this.dispose();
+            }
+        }
     }
 }

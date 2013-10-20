@@ -14,35 +14,37 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-
-import controlefinanceiro.control.CategoriaControl;
-import controlefinanceiro.dao.entidade.Categoria;
-import controlefinanceiro.exception.ErroEliminarRNException;
 import javax.swing.ListSelectionModel;
 
-public class CategoriaForm extends JPanel implements ActionListener {
-    private static final long      serialVersionUID = 9118117547832372220L;
+import controlefinanceiro.control.ChequeControl;
+import controlefinanceiro.dao.entidade.Cheque;
+import controlefinanceiro.exception.CampoInvalidoRNException;
+import controlefinanceiro.exception.ErroEliminarRNException;
+
+public class ChequeForm extends JPanel implements ActionListener {
+    private static final long   serialVersionUID = 9118117547832372220L;
 
     // control
-    protected CategoriaControl     control;
+    private ChequeControl       control;
 
     // panels
-    protected JScrollPane          spCenter;
-    protected JPanel               pnActions;
+    protected JScrollPane       spCenter;
+    protected JPanel            pnActions;
 
     // tables
-    protected JTable               tbModels;
-    protected CategoriaTableModel  tmModel;
-    protected ArrayList<Categoria> models;
+    protected JTable            tbModels;
+    protected ChequeTableModel  tmModel;
+    protected ArrayList<Cheque> models;
 
     // actions
-    protected JButton              btIncluir, btModificar;
-    protected JButton              btDetalhar, btRemover;
+    protected JButton           btIncluir, btModificar;
+    protected JButton           btDetalhar, btRemover;
+    protected JButton           btnEstornar;
 
-    public CategoriaForm() {
+    public ChequeForm() {
         super(new BorderLayout());
 
-        this.control = CategoriaControl.getInstance();
+        this.control = ChequeControl.getInstance();
 
         this.doCenter();
         this.doSouth();
@@ -69,6 +71,11 @@ public class CategoriaForm extends JPanel implements ActionListener {
         this.btDetalhar.setBackground(this.pnActions.getBackground());
         this.pnActions.add(this.btDetalhar);
 
+        this.btnEstornar = new JButton("Estornar");
+        this.btnEstornar.setName("estornar");
+        this.btnEstornar.setBackground(this.pnActions.getBackground());
+        this.pnActions.add(btnEstornar);
+
         this.btRemover = new JButton("Remover");
         this.btRemover.setName("remover");
         this.btRemover.setBackground(this.pnActions.getBackground());
@@ -83,9 +90,9 @@ public class CategoriaForm extends JPanel implements ActionListener {
     }
 
     protected void doCenter() {
-        this.tmModel = new CategoriaTableModel();
+        this.tmModel = new ChequeTableModel();
         this.tbModels = new JTable(this.tmModel);
-        this.tbModels.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tbModels.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         this.spCenter = new JScrollPane(this.tbModels);
         this.spCenter.setBorder(BorderFactory.createEtchedBorder());
 
@@ -96,29 +103,38 @@ public class CategoriaForm extends JPanel implements ActionListener {
     }
 
     public void incluir() {
-        CategoriaSimplesForm frm = new CategoriaSimplesForm(new Categoria(), true);
+        ChequeSimplesForm frm = new ChequeSimplesForm(new Cheque(), true);
 
         if (frm.getModel() != null) {
-            this.control.incluir(frm.getModel());
-            this.models.add(frm.getModel());
-            this.tbModels.setRowSelectionInterval(this.models.size() - 1, //
-                            this.models.size() - 1);
-            this.tbModels.updateUI();
+            try {
+                this.control.incluir(frm.getModel());
+                this.models.add(frm.getModel());
+                this.tbModels.setRowSelectionInterval(this.models.size() - 1, //
+                                this.models.size() - 1);
+                this.tbModels.updateUI();
+            } catch (CampoInvalidoRNException e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao Salvar !", JOptionPane.ERROR_MESSAGE);
+                // e.printStackTrace();
+            }
         }
     }
 
     public void alterar() {
-        CategoriaSimplesForm frm = new CategoriaSimplesForm(this
-                        .getSelectedModel(), true);
+        ChequeSimplesForm frm = new ChequeSimplesForm(this.getSelectedModel(), true);
 
         if (frm.getModel() != null) {
-            this.control.alterar(frm.getModel());
-            this.tbModels.updateUI();
+            try {
+                this.control.alterar(frm.getModel());
+                this.tbModels.updateUI();
+            } catch (CampoInvalidoRNException e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao Salvar !", JOptionPane.ERROR_MESSAGE);
+                // e.printStackTrace();
+            }
         }
     }
 
     public void detalhar() {
-        new CategoriaSimplesForm(this.getSelectedModel(), false);
+        new ChequeSimplesForm(this.getSelectedModel(), false);
     }
 
     public void eliminar() {
@@ -154,7 +170,7 @@ public class CategoriaForm extends JPanel implements ActionListener {
         }
     }
 
-    protected Categoria getSelectedModel() {
+    protected Cheque getSelectedModel() {
         if (this.tbModels.getSelectedRow() >= 0) {
             return this.models.get(this.tbModels.getSelectedRow());
         }

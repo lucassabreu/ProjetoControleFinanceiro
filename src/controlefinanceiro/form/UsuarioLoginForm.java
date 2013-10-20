@@ -2,19 +2,30 @@ package controlefinanceiro.form;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import ui.util.layouts.ParagraphLayout;
+import controlefinanceiro.control.UsuarioControl;
+import controlefinanceiro.exception.LoginInvalidoRNException;
 
-public class UsuarioLoginForm extends JDialog {
+public class UsuarioLoginForm extends JDialog implements ActionListener {
     private static final long serialVersionUID = -4286045236590371512L;
+
+    // control
+    protected UsuarioControl  control;
 
     // panels
     protected JPanel          pnData;
@@ -36,9 +47,20 @@ public class UsuarioLoginForm extends JDialog {
         this.setSize(300, 140);
         this.setModal(true);
         this.setResizable(false);
+        this.setLocationRelativeTo(null);
+
+        this.control = UsuarioControl.getInstance();
 
         this.doData();
         this.doActions();
+
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (control.getUsuario() == null)
+                    System.exit(-1);
+            }
+        });
 
         this.setVisible(true);
     }
@@ -80,6 +102,46 @@ public class UsuarioLoginForm extends JDialog {
         this.btCancelar.setBackground(this.pnActions.getBackground());
         this.pnActions.add(this.btCancelar);
 
+        this.btEntrar.addActionListener(this);
+        this.btRegistrar.addActionListener(this);
+        this.btCancelar.addActionListener(this);
+
         this.add(this.pnActions, BorderLayout.SOUTH);
+    }
+
+    public void registrarUsuario() {
+        new UsuarioRegistroForm();
+
+        if (this.control.getUsuario() != null)
+            this.dispose();
+    }
+
+    public void logar() {
+
+        String login = this.txLogin.getText();
+        String senha = new String(this.txSenha.getPassword());
+
+        try {
+            this.control.validaLogin(login, senha);
+            this.dispose();
+        } catch (LoginInvalidoRNException e) {
+            // e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Login ou senha informados não estão válidos!", "Falhar Autenticação", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() instanceof Component) {
+            Component c = (Component) e.getSource();
+
+            if (c.getName().equals("entrar")) {
+                this.logar();
+            } else if (c.getName().equals("registrar")) {
+                this.registrarUsuario();
+            } else if (c.getName().equals("cancelar")) {
+                System.exit(-1);
+            }
+        }
     }
 }

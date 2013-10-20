@@ -14,35 +14,35 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-
-import controlefinanceiro.control.CategoriaControl;
-import controlefinanceiro.dao.entidade.Categoria;
-import controlefinanceiro.exception.ErroEliminarRNException;
 import javax.swing.ListSelectionModel;
 
-public class CategoriaForm extends JPanel implements ActionListener {
-    private static final long      serialVersionUID = 9118117547832372220L;
+import controlefinanceiro.control.LancamentoControl;
+import controlefinanceiro.dao.entidade.Lancamento;
+import controlefinanceiro.exception.CampoInvalidoRNException;
 
-    // control
-    protected CategoriaControl     control;
+public class LancamentoForm extends JPanel implements ActionListener {
+    private static final long       serialVersionUID = 9118117547832372220L;
+
+    // controls
+    private LancamentoControl       control;
 
     // panels
-    protected JScrollPane          spCenter;
-    protected JPanel               pnActions;
+    protected JScrollPane           spCenter;
+    protected JPanel                pnActions;
 
     // tables
-    protected JTable               tbModels;
-    protected CategoriaTableModel  tmModel;
-    protected ArrayList<Categoria> models;
+    protected JTable                tbModels;
+    protected LancamentoTableModel  tmModel;
+    protected ArrayList<Lancamento> models;
 
     // actions
-    protected JButton              btIncluir, btModificar;
-    protected JButton              btDetalhar, btRemover;
+    protected JButton               btIncluir, btModificar;
+    protected JButton               btDetalhar, btRemover;
 
-    public CategoriaForm() {
+    public LancamentoForm() {
         super(new BorderLayout());
 
-        this.control = CategoriaControl.getInstance();
+        this.control = LancamentoControl.getInstance();
 
         this.doCenter();
         this.doSouth();
@@ -73,7 +73,7 @@ public class CategoriaForm extends JPanel implements ActionListener {
         this.btRemover.setName("remover");
         this.btRemover.setBackground(this.pnActions.getBackground());
         this.pnActions.add(this.btRemover);
-
+        
         this.btIncluir.addActionListener(this);
         this.btModificar.addActionListener(this);
         this.btDetalhar.addActionListener(this);
@@ -83,42 +83,52 @@ public class CategoriaForm extends JPanel implements ActionListener {
     }
 
     protected void doCenter() {
-        this.tmModel = new CategoriaTableModel();
+        this.tmModel = new LancamentoTableModel();
         this.tbModels = new JTable(this.tmModel);
-        this.tbModels.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tbModels.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         this.spCenter = new JScrollPane(this.tbModels);
         this.spCenter.setBorder(BorderFactory.createEtchedBorder());
 
-        this.models = this.control.buscarTodos();
+        this.models = control.buscarTodos();
         this.tmModel.setModels(this.models);
 
         this.add(this.spCenter, BorderLayout.CENTER);
     }
 
     public void incluir() {
-        CategoriaSimplesForm frm = new CategoriaSimplesForm(new Categoria(), true);
+        LancamentoSimplesForm frm = new LancamentoSimplesForm(new Lancamento(), true);
 
         if (frm.getModel() != null) {
-            this.control.incluir(frm.getModel());
-            this.models.add(frm.getModel());
-            this.tbModels.setRowSelectionInterval(this.models.size() - 1, //
-                            this.models.size() - 1);
-            this.tbModels.updateUI();
+            try {
+                this.control.incluir(frm.getModel());
+                this.models.add(frm.getModel());
+                this.tbModels.setRowSelectionInterval(this.models.size() - 1, //
+                                this.models.size() - 1);
+                this.tbModels.updateUI();
+            } catch (CampoInvalidoRNException e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao Salvar !", JOptionPane.ERROR_MESSAGE);
+                // e.printStackTrace();
+            }
         }
     }
 
     public void alterar() {
-        CategoriaSimplesForm frm = new CategoriaSimplesForm(this
+        LancamentoSimplesForm frm = new LancamentoSimplesForm(this
                         .getSelectedModel(), true);
 
         if (frm.getModel() != null) {
-            this.control.alterar(frm.getModel());
-            this.tbModels.updateUI();
+            try {
+                this.control.alterar(frm.getModel());
+                this.tbModels.updateUI();
+            } catch (CampoInvalidoRNException e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao Salvar !", JOptionPane.ERROR_MESSAGE);
+                // e.printStackTrace();
+            }
         }
     }
 
     public void detalhar() {
-        new CategoriaSimplesForm(this.getSelectedModel(), false);
+        new LancamentoSimplesForm(this.getSelectedModel(), false);
     }
 
     public void eliminar() {
@@ -126,14 +136,9 @@ public class CategoriaForm extends JPanel implements ActionListener {
                         .showConfirmDialog(this, "Tem certeza que deseja eliminar?", "Atenção", JOptionPane.YES_NO_OPTION);
 
         if (opt == JOptionPane.YES_OPTION) {
-            try {
-                this.control.eliminar(this.getSelectedModel());
-                this.models.remove(this.getSelectedModel());
-                this.tbModels.updateUI();
-            } catch (ErroEliminarRNException e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(), "Falha ao Eliminar !", JOptionPane.ERROR_MESSAGE);
-                // e.printStackTrace();
-            }
+            this.control.eliminar(this.getSelectedModel());
+            this.models.remove(this.getSelectedModel());
+            this.tbModels.updateUI();
         }
     }
 
@@ -154,7 +159,7 @@ public class CategoriaForm extends JPanel implements ActionListener {
         }
     }
 
-    protected Categoria getSelectedModel() {
+    protected Lancamento getSelectedModel() {
         if (this.tbModels.getSelectedRow() >= 0) {
             return this.models.get(this.tbModels.getSelectedRow());
         }

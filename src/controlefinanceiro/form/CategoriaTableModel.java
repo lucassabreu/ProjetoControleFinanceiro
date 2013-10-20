@@ -4,7 +4,8 @@ import java.util.ArrayList;
 
 import javax.swing.table.AbstractTableModel;
 
-import controlefinanceiro.dao.Categoria;
+import controlefinanceiro.dao.entidade.Categoria;
+
 
 public class CategoriaTableModel extends AbstractTableModel {
     private static final long      serialVersionUID = -8364167098125153147L;

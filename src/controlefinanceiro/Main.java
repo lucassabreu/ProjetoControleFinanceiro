@@ -1,28 +1,28 @@
 package controlefinanceiro;
 
 import javax.swing.UIManager;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
-import controlefinanceiro.dao.Categoria;
-import controlefinanceiro.dao.Natureza;
-import controlefinanceiro.form.CategoriaForm;
-import controlefinanceiro.form.CategoriaSimplesForm;
-import controlefinanceiro.form.UsuarioLoginForm;
-import controlefinanceiro.form.UsuarioRegistroForm;
+import controlefinanceiro.control.UsuarioControl;
+import controlefinanceiro.dao.ConnectionUtil;
+import controlefinanceiro.exception.LoginInvalidoRNException;
+import controlefinanceiro.form.RelatorioForm;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws LoginInvalidoRNException {
 
-        // nao de bola pra o try ... catch
+        ConnectionUtil.connectionType = ConnectionUtil.MY_SQL;
+
+        UsuarioControl.getInstance().validaLogin("lucas", "lucas");
+
+        // nao de bola pra o try ... catch try {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            //UIManager.setLookAndFeel(NimbusLookAndFeel.class.getCanonicalName());
+            UIManager.setLookAndFeel(NimbusLookAndFeel.class.getCanonicalName());
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
-
-        new UsuarioLoginForm();
-        new UsuarioRegistroForm();
-        new CategoriaSimplesForm(new Categoria(null, 4544, "Bananas", Natureza.DESPESA), true);
-        new CategoriaForm();
+        new RelatorioForm();
+        // new MainForm();
     }
 }
