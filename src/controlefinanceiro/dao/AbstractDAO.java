@@ -17,7 +17,7 @@ public abstract class AbstractDAO<T> {
     protected Connection          conn    = null;
     protected String              table   = null;
 
-    protected HashMap<Integer, T> buffer;
+    public HashMap<Integer, T> buffer;
 
     public AbstractDAO(String table, String... colunas) {
         this.table = table;

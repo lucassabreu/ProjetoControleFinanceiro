@@ -2,7 +2,6 @@ package controlefinanceiro.dao.entidade;
 
 import java.util.Date;
 
-
 public class Lancamento {
     private int       numero;
     private Categoria categoria;

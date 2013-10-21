@@ -14,17 +14,22 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 
 import controlefinanceiro.control.CategoriaControl;
 import controlefinanceiro.dao.entidade.Categoria;
 import controlefinanceiro.exception.ErroEliminarRNException;
-import javax.swing.ListSelectionModel;
+import controlefinanceiro.form.detalhe.CategoriaSimplesForm;
+import controlefinanceiro.form.tm.CategoriaTableModel;
 
 public class CategoriaForm extends JPanel implements ActionListener {
     private static final long      serialVersionUID = 9118117547832372220L;
 
     // control
     protected CategoriaControl     control;
+
+    // view
+    protected LancamentoForm       lancamentoForm;
 
     // panels
     protected JScrollPane          spCenter;
@@ -108,31 +113,41 @@ public class CategoriaForm extends JPanel implements ActionListener {
     }
 
     public void alterar() {
-        CategoriaSimplesForm frm = new CategoriaSimplesForm(this
-                        .getSelectedModel(), true);
 
-        if (frm.getModel() != null) {
-            this.control.alterar(frm.getModel());
-            this.tbModels.updateUI();
+        if (this.getSelectedModel() != null) {
+            CategoriaSimplesForm frm = new CategoriaSimplesForm(this
+                            .getSelectedModel(), true);
+
+            if (frm.getModel() != null) {
+                this.control.alterar(frm.getModel());
+                this.tbModels.updateUI();
+
+                if (this.getLancamentoForm() != null)
+                    this.getLancamentoForm().tbModels.updateUI();
+            }
         }
     }
 
     public void detalhar() {
-        new CategoriaSimplesForm(this.getSelectedModel(), false);
+        if (this.getSelectedModel() != null)
+            new CategoriaSimplesForm(this.getSelectedModel(), false);
     }
 
     public void eliminar() {
-        int opt = JOptionPane
-                        .showConfirmDialog(this, "Tem certeza que deseja eliminar?", "Atenção", JOptionPane.YES_NO_OPTION);
 
-        if (opt == JOptionPane.YES_OPTION) {
-            try {
-                this.control.eliminar(this.getSelectedModel());
-                this.models.remove(this.getSelectedModel());
-                this.tbModels.updateUI();
-            } catch (ErroEliminarRNException e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(), "Falha ao Eliminar !", JOptionPane.ERROR_MESSAGE);
-                // e.printStackTrace();
+        if (this.getSelectedModel() != null) {
+            int opt = JOptionPane
+                            .showConfirmDialog(this, "Tem certeza que deseja eliminar?", "Atenção", JOptionPane.YES_NO_OPTION);
+
+            if (opt == JOptionPane.YES_OPTION) {
+                try {
+                    this.control.eliminar(this.getSelectedModel());
+                    this.models.remove(this.getSelectedModel());
+                    this.tbModels.updateUI();
+                } catch (ErroEliminarRNException e) {
+                    JOptionPane.showMessageDialog(this, e.getMessage(), "Falha ao Eliminar !", JOptionPane.ERROR_MESSAGE);
+                    // e.printStackTrace();
+                }
             }
         }
     }
@@ -160,6 +175,14 @@ public class CategoriaForm extends JPanel implements ActionListener {
         }
 
         return null;
+    }
+
+    public LancamentoForm getLancamentoForm() {
+        return lancamentoForm;
+    }
+
+    public void setLancamentoForm(LancamentoForm lancamentoForm) {
+        this.lancamentoForm = lancamentoForm;
     }
 
 }

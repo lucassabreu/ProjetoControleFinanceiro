@@ -8,9 +8,18 @@ import controlefinanceiro.dao.entidade.Usuario;
 
 public class UsuarioDAO extends AbstractDAO<Usuario> {
 
-    private static String[] campos = { "nome", "login", "senha" };
+    private static String[]   campos = { "nome", "login", "senha" };
 
-    public UsuarioDAO() {
+    private static UsuarioDAO instance;
+
+    public static UsuarioDAO getInstance() {
+        if (instance == null)
+            instance = new UsuarioDAO();
+
+        return instance;
+    }
+
+    private UsuarioDAO() {
         super("usuario", campos);
     }
 

@@ -11,11 +11,20 @@ import controlefinanceiro.dao.entidade.Usuario;
 
 public class LancamentoDAO extends AbstractDAO<Lancamento> {
 
-    private CategoriaDAO    catDAO = DAOFactory.newCategoriaDAO();
-    private static String[] campos = { "categoria", "valor", "data",
-            "descricao"           };
+    private CategoriaDAO         catDAO = DAOFactory.newCategoriaDAO();
+    private static String[]      campos = { "categoria", "valor", "data",
+            "descricao"                };
 
-    public LancamentoDAO() {
+    private static LancamentoDAO instance;
+
+    public static LancamentoDAO getInstance() {
+        if (instance == null)
+            instance = new LancamentoDAO();
+
+        return instance;
+    }
+
+    private LancamentoDAO() {
         super("lancamento", "numero", "categoria", "valor", "data", "descricao");
     }
 
@@ -83,8 +92,11 @@ public class LancamentoDAO extends AbstractDAO<Lancamento> {
 
         if (list.isEmpty())
             return null;
-        else
+        else {
+            Lancamento lanc = list.get(0);
+            this.buffer.put(lanc.hashCode(), lanc);
             return list.get(0);
+        }
     }
 
     @Override

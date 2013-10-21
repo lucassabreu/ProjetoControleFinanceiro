@@ -20,7 +20,7 @@ public class CategoriaControl {
         return instance;
     }
 
-    protected CategoriaDAO dao = DAOFactory.newCategoriaDAO();
+    public CategoriaDAO dao = DAOFactory.newCategoriaDAO();
 
     private CategoriaControl() {}
 

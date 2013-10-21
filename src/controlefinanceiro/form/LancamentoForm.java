@@ -19,6 +19,8 @@ import javax.swing.ListSelectionModel;
 import controlefinanceiro.control.LancamentoControl;
 import controlefinanceiro.dao.entidade.Lancamento;
 import controlefinanceiro.exception.CampoInvalidoRNException;
+import controlefinanceiro.form.detalhe.LancamentoSimplesForm;
+import controlefinanceiro.form.tm.LancamentoTableModel;
 
 public class LancamentoForm extends JPanel implements ActionListener {
     private static final long       serialVersionUID = 9118117547832372220L;
@@ -73,7 +75,7 @@ public class LancamentoForm extends JPanel implements ActionListener {
         this.btRemover.setName("remover");
         this.btRemover.setBackground(this.pnActions.getBackground());
         this.pnActions.add(this.btRemover);
-        
+
         this.btIncluir.addActionListener(this);
         this.btModificar.addActionListener(this);
         this.btDetalhar.addActionListener(this);
@@ -113,32 +115,40 @@ public class LancamentoForm extends JPanel implements ActionListener {
     }
 
     public void alterar() {
-        LancamentoSimplesForm frm = new LancamentoSimplesForm(this
-                        .getSelectedModel(), true);
 
-        if (frm.getModel() != null) {
-            try {
-                this.control.alterar(frm.getModel());
-                this.tbModels.updateUI();
-            } catch (CampoInvalidoRNException e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao Salvar !", JOptionPane.ERROR_MESSAGE);
-                // e.printStackTrace();
+        if (this.getSelectedModel() != null) {
+            LancamentoSimplesForm frm = new LancamentoSimplesForm(this
+                            .getSelectedModel(), true);
+
+            if (frm.getModel() != null) {
+                try {
+                    this.control.alterar(frm.getModel());
+                    this.tbModels.updateUI();
+                } catch (CampoInvalidoRNException e) {
+                    JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao Salvar !", JOptionPane.ERROR_MESSAGE);
+                    // e.printStackTrace();
+                }
             }
         }
     }
 
     public void detalhar() {
-        new LancamentoSimplesForm(this.getSelectedModel(), false);
+
+        if (this.getSelectedModel() != null)
+            new LancamentoSimplesForm(this.getSelectedModel(), false);
     }
 
     public void eliminar() {
-        int opt = JOptionPane
-                        .showConfirmDialog(this, "Tem certeza que deseja eliminar?", "Atenção", JOptionPane.YES_NO_OPTION);
 
-        if (opt == JOptionPane.YES_OPTION) {
-            this.control.eliminar(this.getSelectedModel());
-            this.models.remove(this.getSelectedModel());
-            this.tbModels.updateUI();
+        if (this.getSelectedModel() != null) {
+            int opt = JOptionPane
+                            .showConfirmDialog(this, "Tem certeza que deseja eliminar?", "Atenção", JOptionPane.YES_NO_OPTION);
+
+            if (opt == JOptionPane.YES_OPTION) {
+                this.control.eliminar(this.getSelectedModel());
+                this.models.remove(this.getSelectedModel());
+                this.tbModels.updateUI();
+            }
         }
     }
 

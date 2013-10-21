@@ -9,7 +9,10 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 import javax.swing.BorderFactory;
@@ -29,6 +32,9 @@ import controlefinanceiro.control.RelatorioControl;
 import controlefinanceiro.dao.entidade.Categoria;
 import controlefinanceiro.dao.entidade.Cheque;
 import controlefinanceiro.dao.entidade.Lancamento;
+import controlefinanceiro.dao.entidade.Natureza;
+import controlefinanceiro.dao.entidade.SituacaoCheque;
+import controlefinanceiro.dao.entidade.Usuario;
 
 public class RelatorioForm extends JDialog implements ActionListener {
 
@@ -54,16 +60,17 @@ public class RelatorioForm extends JDialog implements ActionListener {
     protected RelatorioControl                        control;
     protected File                                    file;
 
+    protected Usuario                                 usuarioCorrente;
     protected ArrayList<Categoria>                    categorias;
     protected ArrayList<Lancamento>                   lancamentos;
     protected ArrayList<Cheque>                       cheques;
-    protected HashMap<Integer, ArrayList<Lancamento>> lancamentosPorCategoria;
+    protected HashMap<Integer, ArrayList<Lancamento>> lanctosPorCategoria;
 
     public RelatorioForm() {
         this.control = RelatorioControl.getInstance();
 
         this.setTitle("Geração Relatório");
-        this.setSize(450, 170);
+        this.setSize(450, 140);
         this.setResizable(false);
         this.setModal(true);
         this.setLocationRelativeTo(null);
@@ -92,7 +99,7 @@ public class RelatorioForm extends JDialog implements ActionListener {
         bg.add(this.rbTerminal);
         bg.add(this.rbArquivo);
 
-        this.rbArquivo.setSelected(true);
+        this.rbTerminal.setSelected(true);
 
         this.lbDescricao = new JLabel("Arquivo:");
         this.txArquivo = new JTextField(25);
@@ -103,6 +110,7 @@ public class RelatorioForm extends JDialog implements ActionListener {
         this.btProcurar = new JButton("Procurar");
         this.btProcurar.setName("procurar");
         this.btProcurar.addActionListener(this);
+        this.btProcurar.setEnabled(false);
         this.pnData.add(this.btProcurar);
 
         getContentPane().add(this.pnData);
@@ -120,6 +128,7 @@ public class RelatorioForm extends JDialog implements ActionListener {
         this.pnActions.add(this.btCancelar, BorderLayout.WEST);
 
         this.btGerar = new JButton("Gerar");
+        this.btGerar.getSize().width = 15;
         this.btGerar.setName("salvar");
         this.btGerar.setBackground(this.pnActions.getBackground());
         this.btGerar.addActionListener(this);
@@ -167,9 +176,9 @@ public class RelatorioForm extends JDialog implements ActionListener {
 
     public void imprimir() {
 
-        if (this.rbArquivo.isSelected() && this.file.getAbsolutePath()
-                        .isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Não foi selecionado um diretório de saída !", "Erro", JOptionPane.ERROR_MESSAGE);
+        if (this.rbArquivo.isSelected() && (this.file == null || !this.file
+                        .canWrite())) {
+            JOptionPane.showMessageDialog(this, "Não foi selecionado um diretório de saída válido !", "Erro", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -179,12 +188,103 @@ public class RelatorioForm extends JDialog implements ActionListener {
 
             this.file.createNewFile();
 
+            DecimalFormat nf = new DecimalFormat("###,##0.00");
+            DateFormat df = DateFormat.getDateInstance();
+
             FileWriter fw = new FileWriter(this.file);
 
+            Date agora = new Date();
+            float totalChs = 0, totalCat = 0, totalOrc = 0, fator = 1;
+
+            this.montarListas();
+
             fw.write("---------------------------------------------------------------------------------------------------------------\n");
-            fw.write(String.format("Lucas dos Santos Abreu                                                                     - 19/10/2013 - 22:00\n", ));
+            fw.write(String.format("%s - %s\n", //
+                            formatString(this.usuarioCorrente.getNome(), 98), //
+                            df.format(agora)));
             fw.write("---------------------------------------------------------------------------------------------------------------\n");
-            
+
+            for (Categoria c : this.categorias) {
+                totalCat = 0;
+                fw.write("\n");
+                fw.write(String.format(" Categoria: %s (%s)", //
+                                c.getDescricao(), //
+                                c.getTipo().name()));
+                fw.write("\n\n");
+
+                if (c.getTipo() == Natureza.DESPESA)
+                    fator = -1;
+                else
+                    fator = 1;
+
+                fw.write("  Número      Data       Descrição                                                                   Valor\n");
+                fw.write("  ----------- ---------- --------------------------------------------------------------------------- ----------\n");
+
+                if (this.lanctosPorCategoria.containsKey(c.hashCode()))
+                    for (Lancamento l : this.lanctosPorCategoria.get(c
+                                    .hashCode())) {
+                        fw.write(String.format("  %11d %s %s %10s\n", //
+                                        l.getNumero(), //
+                                        df.format(l.getData()), //
+                                        formatString(l.getDescricao(), 75), //
+                                        nf.format(l.getValor()) //
+                        ));
+
+                        totalCat += l.getValor();
+                    }
+                else
+                    fw.write("                                           *** Nenhum lançamento ***\n");
+
+                fw.write("                                                                                                     ----------\n");
+                fw.write(String.format("                                                                                        Valor Total: %10s\n", //
+                                nf.format(totalCat)));
+
+                totalOrc += totalCat * fator;
+            }
+
+            if (!this.cheques.isEmpty()) {
+
+                String compensado = "";
+
+                fw.write("\n");
+                fw.write("                                                ****** CHEQUES ******\n");
+                fw.write("\n");
+                fw.write("  Banco             Conta          Número      Favorecido           Cadastro   Compensado Situação   Valor\n");
+                fw.write("  ----------------- -------------- ----------- -------------------- ---------- ---------- ---------- ----------\n");
+
+                for (Cheque ch : this.cheques) {
+
+                    if (ch.getDataCompensado() == null)
+                        compensado = "          ";
+                    else
+                        compensado = df.format(ch.getDataCompensado());
+
+                    fw.write(String.format("  %s %s %11d %s %s %s %s %10s\n", //
+                                    formatString(ch.getBanco(), 17), //
+                                    formatString(ch.getConta(), 14), //
+                                    ch.getNumero(), //
+                                    formatString(ch.getFavorecido(), 20), //
+                                    df.format(ch.getDataCadastro()), //
+                                    compensado, //
+                                    formatString(ch.getSituacao().name(), 10), //
+                                    nf.format(ch.getValor()) //
+                    ));
+
+                    if (ch.getSituacao() != SituacaoCheque.ESTORNADO)
+                        totalChs += ch.getValor();
+                }
+
+                fw.write("                                                                                                     ----------\n");
+                fw.write(String.format("                                                                                        Valor Total: %10s\n", //
+                                nf.format(totalChs)));
+
+                totalOrc -= totalChs;
+            }
+
+            fw.write("\n");
+            fw.write(String.format("                                                                             *** Saldo do Orçamento: %10s\n", //
+                            nf.format(totalOrc)));
+            fw.write("\n");
             fw.write("---------------------------------------------------------------------------------------------------------------\n");
 
             fw.close();
@@ -199,5 +299,40 @@ public class RelatorioForm extends JDialog implements ActionListener {
         } finally {}
 
         this.dispose();
+    }
+
+    protected String formatString(String value, int length) {
+        StringBuffer sb = new StringBuffer();
+
+        if (value.length() < length) {
+            sb.append(value);
+            for (int i = value.length(); i < length; i++)
+                sb.append(" ");
+        } else if (value.length() > length) {
+            sb.append(value.subSequence(0, length));
+        } else
+            sb.append(value);
+
+        return sb.toString();
+    }
+
+    protected void montarListas() {
+        this.usuarioCorrente = this.control.getUsuario();
+        this.categorias = this.control.buscarCategorias();
+        this.cheques = this.control.buscarCheques();
+        this.lancamentos = this.control.buscarLancamentos();
+        this.lanctosPorCategoria = new HashMap<>();
+
+        // montando listas de lancamentos
+        for (Lancamento lnc : this.lancamentos) {
+            if (!this.lanctosPorCategoria.containsKey(//
+                            lnc.getCategoria().hashCode()))
+                this.lanctosPorCategoria // criando lista lancto por
+                                         // categoria
+                                .put(lnc.getCategoria().hashCode(), new ArrayList<Lancamento>());
+
+            this.lanctosPorCategoria.get(lnc.getCategoria().hashCode())
+                            .add(lnc);
+        }
     }
 }

@@ -10,10 +10,19 @@ import controlefinanceiro.dao.entidade.Usuario;
 
 public class ChequeDAO extends AbstractDAO<Cheque> {
 
-    private UsuarioDAO      usuarioDAO = DAOFactory.newUsuarioDAO();
-    private static String[] campos     = { "usuario", "banco", "conta",
+    private UsuarioDAO       usuarioDAO = DAOFactory.newUsuarioDAO();
+    private static String[]  campos     = { "usuario", "banco", "conta",
             "numero", "valor", "favorecido", "dataCadastro", "dataCompensacao",
-            "situacao"                };
+            "situacao"                 };
+
+    private static ChequeDAO instance;
+
+    public static ChequeDAO getInstance() {
+        if (instance == null)
+            instance = new ChequeDAO();
+
+        return instance;
+    }
 
     public ChequeDAO() {
         super("cheque", "numeroCheque", "usuario", "banco", "conta", "numero", "valor", "favorecido", "dataCadastro", "dataCompensacao", "situacao");

@@ -13,6 +13,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JTabbedPane;
 
 import controlefinanceiro.control.MainControl;
+import controlefinanceiro.form.detalhe.UsuarioLoginForm;
 
 public class MainForm extends JFrame implements ActionListener {
     private static final long serialVersionUID = -8236789081848420152L;
@@ -107,6 +108,7 @@ public class MainForm extends JFrame implements ActionListener {
 
         pnCategoria = new CategoriaForm();
         pnCategoria.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        pnCategoria.setLancamentoForm(this.pnLancamento);
         tpCenter.addTab("Categoria", null, pnCategoria, null);
     }
 

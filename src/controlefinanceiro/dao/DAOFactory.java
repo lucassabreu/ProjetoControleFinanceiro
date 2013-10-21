@@ -2,18 +2,18 @@ package controlefinanceiro.dao;
 
 public abstract class DAOFactory {
     public static CategoriaDAO newCategoriaDAO() {
-        return new CategoriaDAO();
+        return CategoriaDAO.getInstance();
     }
 
     public static UsuarioDAO newUsuarioDAO() {
-        return new UsuarioDAO();
+        return UsuarioDAO.getInstance();
     }
 
     public static LancamentoDAO newLancamentoDAO() {
-        return new LancamentoDAO();
+        return LancamentoDAO.getInstance();
     }
 
     public static ChequeDAO newChequeDAO() {
-        return new ChequeDAO();
+        return ChequeDAO.getInstance();
     }
 }

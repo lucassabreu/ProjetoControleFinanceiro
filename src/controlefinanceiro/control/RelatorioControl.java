@@ -22,7 +22,12 @@ public class RelatorioControl {
         return instance;
     }
 
-    private RelatorioControl() {};
+    private RelatorioControl() {
+        this.uc = UsuarioControl.getInstance();
+        this.ctc = CategoriaControl.getInstance();
+        this.lc = LancamentoControl.getInstance();
+        this.chc = ChequeControl.getInstance();
+    };
 
     public Usuario getUsuario() {
         return this.uc.getUsuario();

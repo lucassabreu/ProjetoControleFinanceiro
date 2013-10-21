@@ -20,6 +20,8 @@ import controlefinanceiro.control.ChequeControl;
 import controlefinanceiro.dao.entidade.Cheque;
 import controlefinanceiro.exception.CampoInvalidoRNException;
 import controlefinanceiro.exception.ErroEliminarRNException;
+import controlefinanceiro.form.detalhe.ChequeSimplesForm;
+import controlefinanceiro.form.tm.ChequeTableModel;
 
 public class ChequeForm extends JPanel implements ActionListener {
     private static final long   serialVersionUID = 9118117547832372220L;
@@ -39,7 +41,6 @@ public class ChequeForm extends JPanel implements ActionListener {
     // actions
     protected JButton           btIncluir, btModificar;
     protected JButton           btDetalhar, btRemover;
-    protected JButton           btnEstornar;
 
     public ChequeForm() {
         super(new BorderLayout());
@@ -70,11 +71,6 @@ public class ChequeForm extends JPanel implements ActionListener {
         this.btDetalhar.setName("detalhar");
         this.btDetalhar.setBackground(this.pnActions.getBackground());
         this.pnActions.add(this.btDetalhar);
-
-        this.btnEstornar = new JButton("Estornar");
-        this.btnEstornar.setName("estornar");
-        this.btnEstornar.setBackground(this.pnActions.getBackground());
-        this.pnActions.add(btnEstornar);
 
         this.btRemover = new JButton("Remover");
         this.btRemover.setName("remover");
@@ -120,35 +116,44 @@ public class ChequeForm extends JPanel implements ActionListener {
     }
 
     public void alterar() {
-        ChequeSimplesForm frm = new ChequeSimplesForm(this.getSelectedModel(), true);
 
-        if (frm.getModel() != null) {
-            try {
-                this.control.alterar(frm.getModel());
-                this.tbModels.updateUI();
-            } catch (CampoInvalidoRNException e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao Salvar !", JOptionPane.ERROR_MESSAGE);
-                // e.printStackTrace();
+        if (this.getSelectedModel() != null) {
+            ChequeSimplesForm frm = new ChequeSimplesForm(this
+                            .getSelectedModel(), true);
+
+            if (frm.getModel() != null) {
+                try {
+                    this.control.alterar(frm.getModel());
+                    this.tbModels.updateUI();
+                } catch (CampoInvalidoRNException e) {
+                    JOptionPane.showMessageDialog(this, e.getMessage(), "Erro ao Salvar !", JOptionPane.ERROR_MESSAGE);
+                    // e.printStackTrace();
+                }
             }
         }
     }
 
     public void detalhar() {
-        new ChequeSimplesForm(this.getSelectedModel(), false);
+
+        if (this.getSelectedModel() != null)
+            new ChequeSimplesForm(this.getSelectedModel(), false);
     }
 
     public void eliminar() {
-        int opt = JOptionPane
-                        .showConfirmDialog(this, "Tem certeza que deseja eliminar?", "Atenção", JOptionPane.YES_NO_OPTION);
 
-        if (opt == JOptionPane.YES_OPTION) {
-            try {
-                this.control.eliminar(this.getSelectedModel());
-                this.models.remove(this.getSelectedModel());
-                this.tbModels.updateUI();
-            } catch (ErroEliminarRNException e) {
-                JOptionPane.showMessageDialog(this, e.getMessage(), "Falha ao Eliminar !", JOptionPane.ERROR_MESSAGE);
-                // e.printStackTrace();
+        if (this.getSelectedModel() != null) {
+            int opt = JOptionPane
+                            .showConfirmDialog(this, "Tem certeza que deseja eliminar?", "Atenção", JOptionPane.YES_NO_OPTION);
+
+            if (opt == JOptionPane.YES_OPTION) {
+                try {
+                    this.control.eliminar(this.getSelectedModel());
+                    this.models.remove(this.getSelectedModel());
+                    this.tbModels.updateUI();
+                } catch (ErroEliminarRNException e) {
+                    JOptionPane.showMessageDialog(this, e.getMessage(), "Falha ao Eliminar !", JOptionPane.ERROR_MESSAGE);
+                    // e.printStackTrace();
+                }
             }
         }
     }

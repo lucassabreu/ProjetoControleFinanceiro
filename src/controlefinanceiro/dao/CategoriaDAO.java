@@ -10,23 +10,36 @@ import controlefinanceiro.dao.entidade.Usuario;
 
 public class CategoriaDAO extends AbstractDAO<Categoria> {
 
-    private UsuarioDAO      usuarioDAO = DAOFactory.newUsuarioDAO();
-    private static String[] campos     = { "usuario", "descricao", "tipo" };
+    private UsuarioDAO          usuarioDAO = DAOFactory.newUsuarioDAO();
+    private static String[]     campos     = { "usuario", "descricao", "tipo" };
 
-    public CategoriaDAO() {
+    private static CategoriaDAO instance   = null;
+
+    public static CategoriaDAO getInstance() {
+        if (instance == null)
+            instance = new CategoriaDAO();
+
+        return instance;
+    }
+
+    private CategoriaDAO() {
         super("categoria", "codigo", "usuario", "descricao", "tipo");
     }
 
     @Override
     protected Categoria montarObjeto(ResultSet rs) {
 
-        Categoria cat = new Categoria();
+        Categoria cat = null;
 
         try {
-            cat.setCodigo(rs.getInt(1));
+            int hashCode = 31 * 1 + rs.getInt(1);
 
-            if (this.buffer.get(cat.hashCode()) != null)
-                cat = this.buffer.get(cat.hashCode());
+            if (this.buffer.containsKey(hashCode)) {
+                cat = this.buffer.get(hashCode);
+            } else {
+                cat = new Categoria();
+                cat.setCodigo(rs.getInt(1));
+            }
 
             cat.setDescricao(rs.getString(3));
 
@@ -84,8 +97,11 @@ public class CategoriaDAO extends AbstractDAO<Categoria> {
 
         if (list.isEmpty())
             return null;
-        else
+        else {
+            Categoria cat = list.get(0);
+            this.buffer.put(cat.hashCode(), cat);
             return list.get(0);
+        }
     }
 
     @Override
